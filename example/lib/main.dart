@@ -1,4 +1,4 @@
-import 'package:copyable/copyable.dart';
+import 'package:copyable_widget/copyable_widget.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -11,7 +11,7 @@ class CopyableExampleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'copyable demo',
+      title: 'copyable_widget demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: const Color(0xFF6750A4),
@@ -46,7 +46,7 @@ class _ExamplePageState extends State<ExamplePage> {
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
-        title: const Text('copyable'),
+        title: const Text('copyable_widget'),
         centerTitle: false,
         backgroundColor: cs.surfaceContainerHighest,
         scrolledUnderElevation: 0,

@@ -1,12 +1,12 @@
-name: copyable
+name: copyable_widget
 description: >-
   Zero-boilerplate clipboard copy for any Flutter widget or text.
   Long-press or tap to copy, with haptic feedback and SnackBar confirmation.
   Works on Android, iOS, Web, macOS, Windows, and Linux.
 version: 1.0.0
-homepage: https://github.com/RamaArif/copyable
-repository: https://github.com/RamaArif/copyable
-issue_tracker: https://github.com/RamaArif/copyable/issues
+homepage: https://github.com/RamaArif/copyable_widget
+repository: https://github.com/RamaArif/copyable_widget
+issue_tracker: https://github.com/RamaArif/copyable_widget/issues
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

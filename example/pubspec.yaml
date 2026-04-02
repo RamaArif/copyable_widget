@@ -1,5 +1,5 @@
-name: copyable_example
-description: Demonstrates all features of the copyable package.
+name: copyable_widget_example
+description: Demonstrates all features of the copyable_widget package.
 publish_to: none
 version: 1.0.0
 
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  copyable:
+  copyable_widget:
     path: ../
 
 dev_dependencies:

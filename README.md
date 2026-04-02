@@ -1,12 +1,12 @@
-# copyable
+# copyable_widget
 
-[![pub package](https://img.shields.io/pub/v/copyable.svg)](https://pub.dev/packages/copyable)
+[![pub package](https://img.shields.io/pub/v/copyable_widget.svg)](https://pub.dev/packages/copyable_widget)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![platforms](https://img.shields.io/badge/platforms-android%20%7C%20ios%20%7C%20web%20%7C%20macos%20%7C%20windows%20%7C%20linux-lightgrey)](https://pub.dev/packages/copyable)
+[![platforms](https://img.shields.io/badge/platforms-android%20%7C%20ios%20%7C%20web%20%7C%20macos%20%7C%20windows%20%7C%20linux-lightgrey)](https://pub.dev/packages/copyable_widget)
 
 Zero-boilerplate clipboard copy for any Flutter widget or text — long-press or tap, with haptic feedback and SnackBar confirmation out of the box.
 
-**[Live Demo →](https://RamaArif.github.io/copyable/)**
+**[Live Demo →](https://RamaArif.github.io/copyable_widget/)**
 
 ---
 
@@ -26,7 +26,7 @@ GestureDetector(
 )
 ```
 
-`copyable` eliminates all of it.
+`copyable_widget` eliminates all of it.
 
 ---
 
@@ -34,11 +34,11 @@ GestureDetector(
 
 ```yaml
 dependencies:
-  copyable: ^1.0.0
+  copyable_widget: ^1.0.0
 ```
 
 ```dart
-import 'package:copyable/copyable.dart';
+import 'package:copyable_widget/copyable_widget.dart';
 ```
 
 ---
@@ -190,7 +190,7 @@ Zero external dependencies. Only Flutter SDK (`flutter/services`, `flutter/mater
 
 ## Contributing
 
-Issues and pull requests are welcome at [github.com/RamaArif/copyable](https://github.com/RamaArif/copyable).
+Issues and pull requests are welcome at [github.com/RamaArif/copyable_widget](https://github.com/RamaArif/copyable_widget).
 
 ## License
 

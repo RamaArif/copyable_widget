@@ -2,7 +2,7 @@
 ///
 /// ## Quick start
 /// ```dart
-/// import 'package:copyable/copyable.dart';
+/// import 'package:copyable_widget/copyable_widget.dart';
 ///
 /// // Copy text with a single line
 /// Copyable.text("TXN-9182736")
@@ -13,7 +13,7 @@
 ///   child: AccountNumberRow(...),
 /// )
 /// ```
-library copyable;
+library copyable_widget;
 
 // Public models
 export 'src/domain/models/copyable_action_mode.dart';

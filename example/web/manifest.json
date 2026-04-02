@@ -1,6 +1,6 @@
 {
-    "name": "copyable_example",
-    "short_name": "copyable_example",
+    "name": "copyable_widget_example",
+    "short_name": "copyable_widget_example",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

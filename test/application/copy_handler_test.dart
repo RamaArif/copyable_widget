@@ -1,7 +1,7 @@
-import 'package:copyable/copyable.dart';
-import 'package:copyable/src/application/copy_handler.dart';
-import 'package:copyable/src/domain/services/clipboard_service.dart';
-import 'package:copyable/src/domain/services/haptic_service.dart';
+import 'package:copyable_widget/copyable_widget.dart';
+import 'package:copyable_widget/src/application/copy_handler.dart';
+import 'package:copyable_widget/src/domain/services/clipboard_service.dart';
+import 'package:copyable_widget/src/domain/services/haptic_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
