@@ -4,7 +4,6 @@ import '../application/copy_handler.dart';
 import '../domain/models/copyable_action_mode.dart';
 import '../domain/models/copyable_feedback.dart';
 import '../domain/models/haptic_feedback_style.dart';
-import 'copyable_text.dart';
 
 /// Wraps any widget with clipboard copy behaviour on tap or long-press.
 ///
@@ -123,25 +122,28 @@ class Copyable extends StatelessWidget {
     TextHeightBehavior? textHeightBehavior,
     Color? selectionColor,
   }) =>
-      CopyableText(
-        data,
+      Copyable(
         key: key,
+        value: data,
         mode: mode,
         feedback: feedback,
         haptic: haptic,
-        style: style,
-        strutStyle: strutStyle,
-        textAlign: textAlign,
-        textDirection: textDirection,
-        locale: locale,
-        softWrap: softWrap,
-        overflow: overflow,
-        textScaler: textScaler,
-        maxLines: maxLines,
-        semanticsLabel: semanticsLabel,
-        textWidthBasis: textWidthBasis,
-        textHeightBehavior: textHeightBehavior,
-        selectionColor: selectionColor,
+        child: Text(
+          data,
+          style: style,
+          strutStyle: strutStyle,
+          textAlign: textAlign,
+          textDirection: textDirection,
+          locale: locale,
+          softWrap: softWrap,
+          overflow: overflow,
+          textScaler: textScaler,
+          maxLines: maxLines,
+          semanticsLabel: semanticsLabel,
+          textWidthBasis: textWidthBasis,
+          textHeightBehavior: textHeightBehavior,
+          selectionColor: selectionColor,
+        ),
       );
 
   @override

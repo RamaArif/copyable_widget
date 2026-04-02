@@ -1,5 +1,6 @@
 ## 1.0.0
 
+* **Null safety**: this version opts into sound null safety (previous versions did not)
 * Initial release
 * `Copyable` widget — wraps any widget with clipboard copy behavior
 * `Copyable.text` — drop-in Text replacement with copy on tap/long-press
