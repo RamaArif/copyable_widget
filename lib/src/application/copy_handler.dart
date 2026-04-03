@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart'
     show BuildContext, ScaffoldMessenger, SnackBar, Text, TextAlign;
 
@@ -37,19 +35,11 @@ class CopyHandler {
   /// Returns the effective [CopyableActionMode].
   ///
   /// When [explicit] is non-null it is returned unchanged.
-  /// Otherwise the mode is auto-detected based on the current platform:
-  /// - `tap` on web, macOS, Windows, and Linux
-  /// - `longPress` on Android and iOS
+  /// Otherwise defaults to [CopyableActionMode.tap] on all platforms.
+  /// Use [CopyableActionMode.longPress] explicitly when you want long-press
+  /// behaviour on mobile.
   CopyableActionMode resolveMode(CopyableActionMode? explicit) {
-    if (explicit != null) return explicit;
-    if (kIsWeb) return CopyableActionMode.tap;
-    return switch (defaultTargetPlatform) {
-      TargetPlatform.macOS ||
-      TargetPlatform.windows ||
-      TargetPlatform.linux =>
-        CopyableActionMode.tap,
-      _ => CopyableActionMode.longPress,
-    };
+    return explicit ?? CopyableActionMode.tap;
   }
 
   /// Writes [value] to the clipboard, fires haptic feedback, and executes
@@ -84,7 +74,7 @@ class CopyHandler {
   ) {
     switch (feedback) {
       case SnackBarFeedback(:final text, :final duration):
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           SnackBar(
             content: Text(text, textAlign: TextAlign.center),
             duration: duration,
