@@ -52,9 +52,8 @@ void main() {
       );
     });
 
-    test('resolves null to a valid mode', () {
-      final resolved = handler.resolveMode(null);
-      expect(CopyableActionMode.values, contains(resolved));
+    test('resolves null to tap on all platforms', () {
+      expect(handler.resolveMode(null), CopyableActionMode.tap);
     });
   });
 

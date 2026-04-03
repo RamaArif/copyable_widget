@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![platforms](https://img.shields.io/badge/platforms-android%20%7C%20ios%20%7C%20web%20%7C%20macos%20%7C%20windows%20%7C%20linux-lightgrey)](https://pub.dev/packages/copyable_widget)
 
-Zero-boilerplate clipboard copy for any Flutter widget or text — long-press or tap, with haptic feedback and SnackBar confirmation out of the box.
+Zero-boilerplate clipboard copy for any Flutter widget or text — tap, with haptic feedback and SnackBar confirmation out of the box.
 
 **[Live Demo →](https://RamaArif.github.io/copyable_widget/)**
 
@@ -46,13 +46,30 @@ import 'package:copyable_widget/copyable_widget.dart';
 ## Quick start
 
 ```dart
-// Drop-in text replacement — long-press to copy on mobile, tap on desktop/web
+// Drop-in text shorthand — tap to copy, shows "Copied!" SnackBar
 Copyable.text("TXN-9182736")
+
+// Show a label but copy a different value
+Copyable.text(
+  "Copy card number",
+  value: cardNumber,
+)
 
 // Wrap any widget — value and child are deliberately decoupled
 Copyable(
   value: accountNumber,
   child: AccountNumberRow(...),
+)
+
+// Wrap only the copy icon, leaving the rest of the row non-interactive
+Row(
+  children: [
+    Text(accountNumber),
+    Copyable(
+      value: accountNumber,
+      child: Icon(Icons.copy_rounded),
+    ),
+  ],
 )
 ```
 
@@ -72,7 +89,12 @@ Copyable(
 
 ### `Copyable.text` factory
 
-Identical to `Copyable` but wraps a `Text` widget. Accepts all standard `Text` parameters (`style`, `textAlign`, `overflow`, `maxLines`, etc.).
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `data` | `String` | required | Text string displayed to the user |
+| `value` | `String?` | `null` | String written to the clipboard. When omitted, `data` is copied instead — use this to show a label (e.g. `"Copy card number"`) while copying a different value |
+
+Also accepts all standard `Text` parameters (`style`, `textAlign`, `overflow`, `maxLines`, etc.).
 
 ### `CopyableFeedback` options
 
@@ -84,10 +106,10 @@ Identical to `Copyable` but wraps a `Text` widget. Accepts all standard `Text` p
 
 ### `CopyableActionMode`
 
-| Value | Default on |
+| Value | Description |
 |---|---|
-| `longPress` | Android, iOS |
-| `tap` | Web, macOS, Windows, Linux |
+| `tap` | Default on all platforms |
+| `longPress` | Pass explicitly when long-press behaviour is needed |
 
 ### `CopyableEvent` (passed to `custom` callback)
 
@@ -105,20 +127,39 @@ Identical to `Copyable` but wraps a `Text` widget. Accepts all standard `Text` p
 // 1. Minimal — all defaults
 Copyable.text("TXN-9182736")
 
-// 2. Explicit tap mode for a dedicated copy row
-Copyable(
-  value: accountNumber,
-  mode: CopyableActionMode.tap,
-  child: CopyButtonRow(...),
+// 2. Label + value — display one string, copy another
+Copyable.text(
+  "Copy card number",
+  value: cardNumber,
+  feedback: CopyableFeedback.snackBar(text: 'Card number copied!'),
 )
 
-// 3. Custom SnackBar message
+// 3. Wrap only the copy icon — row itself stays non-interactive
+Row(
+  children: [
+    Text(accountNumber, style: TextStyle(fontFamily: 'monospace')),
+    const Spacer(),
+    Copyable(
+      value: accountNumber,
+      feedback: CopyableFeedback.snackBar(text: 'Copied!'),
+      child: Icon(Icons.copy_rounded),
+    ),
+  ],
+)
+
+// 4. Wrap the entire row
+Copyable(
+  value: accountNumber,
+  child: AccountNumberRow(...),
+)
+
+// 5. Custom SnackBar message
 Copyable.text(
   "TXN-9182736",
   feedback: CopyableFeedback.snackBar(text: "Transaction ID copied"),
 )
 
-// 4. Fully custom feedback using event context
+// 6. Fully custom feedback using event context
 Copyable(
   value: walletAddress,
   feedback: CopyableFeedback.custom(
@@ -129,18 +170,17 @@ Copyable(
   child: WalletAddressTile(...),
 )
 
-// 5. Silent copy — manage your own state
+// 7. Silent copy — manage your own state
 Copyable(
   value: apiKey,
   feedback: CopyableFeedback.none(),
   child: ApiKeyCard(...),
 )
 
-// 6. Different haptic style
+// 8. Long-press mode (explicit)
 Copyable.text(
-  promoCode,
-  haptic: HapticFeedbackStyle.mediumImpact,
-  feedback: CopyableFeedback.snackBar(text: 'Promo code copied'),
+  "Hold to copy",
+  mode: CopyableActionMode.longPress,
 )
 ```
 
@@ -153,7 +193,7 @@ Copyable.text(
 | Clipboard write | ✅ | ✅ | ✅ ¹ | ✅ | ✅ | ✅ |
 | Haptic feedback | ✅ | ✅ | no-op | no-op | no-op | no-op |
 | SnackBar feedback | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Default mode | `longPress` | `longPress` | `tap` | `tap` | `tap` | `tap` |
+| Default mode | `tap` | `tap` | `tap` | `tap` | `tap` | `tap` |
 
 > ¹ Web clipboard write is initiated from a user gesture, which is guaranteed.
 

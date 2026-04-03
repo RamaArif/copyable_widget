@@ -1,3 +1,10 @@
+## 1.1.0
+
+* `Copyable.text` now accepts an optional `value` parameter — display a label (e.g. `"Copy card number"`) while copying a different string to the clipboard
+* Default gesture mode is now `tap` on **all** platforms (was `longPress` on Android/iOS); pass `mode: CopyableActionMode.longPress` explicitly when long-press is needed
+* Fixed `ScaffoldMessenger.of` crash when no `Scaffold` ancestor is present (now uses `maybeOf`)
+* Expanded widget-test suite with platform-channel mocking, clipboard-value interception, and label/value decoupling coverage
+
 ## 1.0.1
 
 * Renamed package from `copyable` to `copyable_widget`

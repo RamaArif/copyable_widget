@@ -28,15 +28,12 @@ class CopyableExampleApp extends StatelessWidget {
   }
 }
 
-class ExamplePage extends StatefulWidget {
+class ExamplePage extends StatelessWidget {
   const ExamplePage({super.key});
 
-  @override
-  State<ExamplePage> createState() => _ExamplePageState();
-}
-
-class _ExamplePageState extends State<ExamplePage> {
-  bool _silentCopied = false;
+  static const _cardNumber = '4111 1111 1111 1111';
+  static const _iban = 'GB29 NWBK 6016 1331 9268 19';
+  static const _accountNumber = 'DE89 3704 0044 0532 0130 00';
 
   @override
   Widget build(BuildContext context) {
@@ -54,161 +51,61 @@ class _ExamplePageState extends State<ExamplePage> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         children: [
-          _SectionLabel('1 — Copyable.text (default SnackBar)'),
+          // ── 1. Copyable.text with value ──────────────────────────────────
+          const _SectionLabel('Copyable.text — label + value'),
           const SizedBox(height: 8),
           _DemoCard(
             description:
-                'Long-press on mobile, tap on desktop/web. Shows "Copied!" SnackBar.',
-            child: Copyable.text(
-              'TXN-9182736',
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: cs.onSurface,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          _SectionLabel('2 — Copyable widget (wraps any child)'),
-          const SizedBox(height: 8),
-          _DemoCard(
-            description:
-                'The copy value and the displayed widget are decoupled.',
-            child: Copyable(
-              value: 'GB29 NWBK 6016 1331 9268 19',
-              child: _AccountNumberRow(
-                label: 'IBAN',
-                number: 'GB29 NWBK 6016 1331 9268 19',
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          _SectionLabel('3 — Custom SnackBar message'),
-          const SizedBox(height: 8),
-          _DemoCard(
-            description:
-                'Pass a custom text to CopyableFeedback.snackBar().',
-            child: Copyable.text(
-              'PROMO-SAVE20',
-              feedback:
-                  const CopyableFeedback.snackBar(text: 'Promo code copied!'),
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-                color: cs.primary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          _SectionLabel('4 — Fully custom feedback'),
-          const SizedBox(height: 8),
-          _DemoCard(
-            description:
-                'CopyableFeedback.custom() gives you BuildContext + CopyableEvent.',
-            child: Copyable(
-              value: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-              feedback: CopyableFeedback.custom(
-                (context, event) =>
-                    ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Copied: ${event.value.substring(0, 8)}… '
-                      '(via ${event.mode.name})',
-                    ),
+                'The label "Copy card number" is displayed; the actual '
+                'card number is what lands on the clipboard.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _cardNumber,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                    letterSpacing: 1.5,
                   ),
                 ),
-              ),
-              child: _WalletAddressRow(
-                address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-              ),
+                const SizedBox(height: 8),
+                Copyable.text(
+                  'Copy card number',
+                  value: _cardNumber,
+                  feedback: const CopyableFeedback.snackBar(
+                    text: 'Card number copied!',
+                  ),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: cs.primary,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),
 
-          _SectionLabel('5 — Silent copy (no UI feedback)'),
+          // ── 2. Whole row copyable ────────────────────────────────────────
+          const _SectionLabel('Copyable — whole row'),
           const SizedBox(height: 8),
-          _DemoCard(
+          const _DemoCard(
             description:
-                'CopyableFeedback.none() — app manages its own state indicator.',
-            child: Copyable(
-              value: 'sk_live_abc123def456',
-              feedback: CopyableFeedback.none(),
-              mode: CopyableActionMode.tap,
-              child: GestureDetector(
-                onTap: () => setState(() => _silentCopied = true),
-                child: _ApiKeyRow(
-                  apiKey: 'sk_live_abc123def456',
-                  copied: _silentCopied,
-                ),
-              ),
-            ),
+                'Wrap the entire row — tap anywhere on it to copy.',
+            child: _IbanRow(iban: _iban),
           ),
           const SizedBox(height: 24),
 
-          _SectionLabel('6 — Tap vs Long-press (explicit mode)'),
+          // ── 3. Only the copy icon is copyable ────────────────────────────
+          const _SectionLabel('Copyable — icon only'),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _DemoCard(
-                  description: 'tap',
-                  child: Copyable(
-                    value: 'tap-mode',
-                    mode: CopyableActionMode.tap,
-                    feedback: const CopyableFeedback.snackBar(
-                      text: 'Tap mode: copied!',
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.touch_app_rounded,
-                              color: cs.primary, size: 32),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Tap me',
-                            style: TextStyle(color: cs.primary),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _DemoCard(
-                  description: 'longPress',
-                  child: Copyable(
-                    value: 'long-press-mode',
-                    mode: CopyableActionMode.longPress,
-                    feedback: const CopyableFeedback.snackBar(
-                      text: 'Long-press mode: copied!',
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.pan_tool_rounded,
-                              color: cs.secondary, size: 32),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Hold me',
-                            style: TextStyle(color: cs.secondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          const _DemoCard(
+            description:
+                'Only the copy icon is wrapped with Copyable — the rest '
+                'of the row is not interactive.',
+            child: _IbanRowIconOnly(iban: _accountNumber),
           ),
           const SizedBox(height: 40),
         ],
@@ -218,6 +115,90 @@ class _ExamplePageState extends State<ExamplePage> {
 }
 
 // ── Supporting widgets ────────────────────────────────────────────────────────
+
+class _IbanRow extends StatelessWidget {
+  const _IbanRow({required this.iban});
+  final String iban;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Copyable(
+      value: iban,
+      feedback: const CopyableFeedback.snackBar(text: 'IBAN copied!'),
+      child: Row(
+        children: [
+          Icon(Icons.account_balance_rounded, color: cs.primary, size: 20),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'IBAN',
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall
+                    ?.copyWith(color: cs.outline),
+              ),
+              Text(
+                iban,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Icon(Icons.copy_rounded, color: cs.outline, size: 18),
+        ],
+      ),
+    );
+  }
+}
+
+class _IbanRowIconOnly extends StatelessWidget {
+  const _IbanRowIconOnly({required this.iban});
+  final String iban;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Icon(Icons.account_balance_rounded, color: cs.primary, size: 20),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'IBAN',
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(color: cs.outline),
+            ),
+            Text(
+              iban,
+              style: TextStyle(
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.w600,
+                color: cs.onSurface,
+              ),
+            ),
+          ],
+        ),
+        const Spacer(),
+        Copyable(
+          value: iban,
+          feedback: const CopyableFeedback.snackBar(text: 'IBAN copied!'),
+          child: Icon(Icons.copy_rounded, color: cs.outline, size: 18),
+        ),
+      ],
+    );
+  }
+}
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel(this.text);
@@ -265,122 +246,6 @@ class _DemoCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _AccountNumberRow extends StatelessWidget {
-  const _AccountNumberRow({required this.label, required this.number});
-  final String label;
-  final String number;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        Icon(Icons.account_balance_rounded, color: cs.primary, size: 20),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelSmall
-                    ?.copyWith(color: cs.outline)),
-            Text(number,
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontWeight: FontWeight.w600,
-                  color: cs.onSurface,
-                )),
-          ],
-        ),
-        const Spacer(),
-        Icon(Icons.copy_rounded, color: cs.outline, size: 18),
-      ],
-    );
-  }
-}
-
-class _WalletAddressRow extends StatelessWidget {
-  const _WalletAddressRow({required this.address});
-  final String address;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final short =
-        '${address.substring(0, 8)}…${address.substring(address.length - 6)}';
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: cs.secondaryContainer,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(Icons.currency_bitcoin_rounded,
-              color: cs.secondary, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Wallet address',
-                style: Theme.of(context)
-                    .textTheme
-                    .labelSmall
-                    ?.copyWith(color: cs.outline)),
-            Text(short,
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontWeight: FontWeight.w600,
-                  color: cs.onSurface,
-                )),
-          ],
-        ),
-        const Spacer(),
-        Icon(Icons.copy_rounded, color: cs.outline, size: 18),
-      ],
-    );
-  }
-}
-
-class _ApiKeyRow extends StatelessWidget {
-  const _ApiKeyRow({required this.apiKey, required this.copied});
-  final String apiKey;
-  final bool copied;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        Icon(Icons.key_rounded, color: cs.tertiary, size: 20),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            apiKey,
-            style: TextStyle(
-              fontFamily: 'monospace',
-              color: cs.onSurface,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: 8),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: copied
-              ? Icon(Icons.check_circle_rounded,
-                  key: const ValueKey('check'), color: Colors.green, size: 20)
-              : Icon(Icons.copy_rounded,
-                  key: const ValueKey('copy'), color: cs.outline, size: 18),
-        ),
-      ],
     );
   }
 }

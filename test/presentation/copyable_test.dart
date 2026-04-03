@@ -1,8 +1,19 @@
 import 'package:copyable_widget/copyable_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+
+/// Registers a no-op mock for [SystemChannels.platform] so that
+/// [Clipboard.setData] and [HapticFeedback] calls complete successfully
+/// instead of throwing [MissingPluginException] in the test environment.
+void _mockPlatformChannel(WidgetTester tester) {
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    SystemChannels.platform,
+    (MethodCall call) async => null,
+  );
+}
 
 void main() {
   group('Copyable widget', () {
@@ -21,6 +32,7 @@ void main() {
     });
 
     testWidgets('tap mode triggers on tap', (tester) async {
+      _mockPlatformChannel(tester);
       await tester.pumpWidget(
         _wrap(
           const Copyable(
@@ -33,12 +45,14 @@ void main() {
       );
 
       await tester.tap(find.text('tap me'));
-      await tester.pump();
+      await tester.pump(); // async chain (clipboard → haptic → showSnackBar)
+      await tester.pump(); // SnackBar frame rendered
 
       expect(find.text('Tap works'), findsOneWidget);
     });
 
     testWidgets('longPress mode triggers on long press', (tester) async {
+      _mockPlatformChannel(tester);
       await tester.pumpWidget(
         _wrap(
           const Copyable(
@@ -51,7 +65,8 @@ void main() {
       );
 
       await tester.longPress(find.text('hold me'));
-      await tester.pump();
+      await tester.pump(); // async chain (clipboard → haptic → showSnackBar)
+      await tester.pump(); // SnackBar frame rendered
 
       expect(find.text('LongPress works'), findsOneWidget);
     });
@@ -93,6 +108,7 @@ void main() {
     });
 
     testWidgets('custom feedback callback is invoked', (tester) async {
+      _mockPlatformChannel(tester);
       String? capturedValue;
 
       await tester.pumpWidget(
@@ -109,7 +125,7 @@ void main() {
       );
 
       await tester.tap(find.text('custom'));
-      await tester.pump();
+      await tester.pump(); // async chain (clipboard → haptic → callback)
 
       expect(capturedValue, 'wallet-addr');
     });
@@ -131,6 +147,7 @@ void main() {
     });
 
     testWidgets('shows SnackBar on tap', (tester) async {
+      _mockPlatformChannel(tester);
       await tester.pumpWidget(
         _wrap(
           Copyable.text(
@@ -142,9 +159,56 @@ void main() {
       );
 
       await tester.tap(find.text('TXN-002'));
-      await tester.pump();
+      await tester.pump(); // async chain (clipboard → haptic → showSnackBar)
+      await tester.pump(); // SnackBar frame rendered
 
       expect(find.text('Text copied'), findsOneWidget);
+    });
+
+    testWidgets('value is what lands on the clipboard, not the label', (tester) async {
+      String? clipboardValue;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall call) async {
+          if (call.method == 'Clipboard.setData') {
+            clipboardValue = (call.arguments as Map)['text'] as String?;
+          }
+          return null;
+        },
+      );
+
+      await tester.pumpWidget(
+        _wrap(
+          Copyable.text(
+            'Copy card number',
+            value: '4111-1111-1111-1111',
+            mode: CopyableActionMode.tap,
+            feedback: const CopyableFeedback.none(),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Copy card number'));
+      await tester.pump();
+
+      expect(clipboardValue, '4111-1111-1111-1111');
+    });
+
+    testWidgets('displays label text when value is provided separately', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          Copyable.text(
+            'Copy card number',
+            value: '4111-1111-1111-1111',
+            mode: CopyableActionMode.tap,
+            feedback: const CopyableFeedback.none(),
+          ),
+        ),
+      );
+
+      // The displayed label is 'data', not 'value'
+      expect(find.text('Copy card number'), findsOneWidget);
+      expect(find.text('4111-1111-1111-1111'), findsNothing);
     });
 
     testWidgets('forwards TextStyle to underlying Text', (tester) async {

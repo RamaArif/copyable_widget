@@ -49,11 +49,9 @@ import '../domain/models/haptic_feedback_style.dart';
 ///
 /// **Mode selection**
 ///
-/// When [mode] is null (default), the effective mode is resolved at runtime:
-/// - `tap` on web, macOS, Windows, and Linux
-/// - `longPress` on Android and iOS
-///
-/// Pass an explicit [CopyableActionMode] to override auto-detection.
+/// When [mode] is null (default), [CopyableActionMode.tap] is used on all
+/// platforms. Pass [CopyableActionMode.longPress] explicitly if you need
+/// long-press behaviour.
 class Copyable extends StatelessWidget {
   /// Creates a [Copyable] that wraps [child] and copies [value] to the
   /// clipboard on the resolved gesture.
@@ -74,7 +72,7 @@ class Copyable extends StatelessWidget {
 
   /// The gesture that triggers the copy.
   ///
-  /// Defaults to `null` (auto-detected per platform). See [CopyableActionMode].
+  /// Defaults to [CopyableActionMode.tap] on all platforms when null.
   final CopyableActionMode? mode;
 
   /// What happens after a successful copy.
@@ -95,16 +93,27 @@ class Copyable extends StatelessWidget {
   /// Equivalent to wrapping a [Text] widget with [Copyable]. All standard
   /// [Text] parameters are forwarded verbatim.
   ///
+  /// The optional [value] parameter lets you decouple the displayed label from
+  /// what is written to the clipboard. When omitted, [data] is copied instead.
+  ///
   /// ```dart
   /// Copyable.text(
   ///   "TXN-9182736",
   ///   style: TextStyle(fontFamily: 'monospace'),
   ///   feedback: CopyableFeedback.snackBar(text: 'Transaction ID copied'),
   /// )
+  ///
+  /// // Show a label but copy the actual card number
+  /// Copyable.text(
+  ///   "Copy card number",
+  ///   value: cardNumber,
+  ///   feedback: CopyableFeedback.snackBar(text: 'Card number copied'),
+  /// )
   /// ```
   factory Copyable.text(
     String data, {
     Key? key,
+    String? value,
     CopyableActionMode? mode,
     CopyableFeedback feedback = const SnackBarFeedback(),
     HapticFeedbackStyle haptic = HapticFeedbackStyle.lightImpact,
@@ -124,7 +133,7 @@ class Copyable extends StatelessWidget {
   }) =>
       Copyable(
         key: key,
-        value: data,
+        value: value ?? data,
         mode: mode,
         feedback: feedback,
         haptic: haptic,
