@@ -12,6 +12,19 @@ void _mockPlatformChannel(WidgetTester tester) {
   );
 }
 
+void _mockPlatformChannelCapture(
+    WidgetTester tester, List<String> written) {
+  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    SystemChannels.platform,
+    (MethodCall call) async {
+      if (call.method == 'Clipboard.setData') {
+        written.add(call.arguments['text'] as String);
+      }
+      return null;
+    },
+  );
+}
+
 void _mockPlatformChannelThrow(WidgetTester tester) {
   tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
     SystemChannels.platform,
@@ -123,6 +136,109 @@ void main() {
       await tester.tap(find.text('tap'));
       await tester.pump();
       expect(find.byType(SnackBar), findsNothing);
+    });
+  });
+
+  group('Copyable clearAfter', () {
+    testWidgets('clears clipboard after specified duration', (tester) async {
+      final written = <String>[];
+      _mockPlatformChannelCapture(tester, written);
+      await tester.pumpWidget(
+        _wrap(
+          const Copyable(
+            value: 'secret',
+            clearAfter: Duration(seconds: 30),
+            feedback: NoneFeedback(),
+            child: Text('tap'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('tap'));
+      await tester.pump();
+      expect(written, ['secret']);
+
+      await tester.pump(const Duration(seconds: 30));
+      expect(written, ['secret', '']);
+    });
+
+    testWidgets('does NOT clear clipboard when onError fires', (tester) async {
+      final written = <String>[];
+      _mockPlatformChannelCapture(tester, written);
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall call) async {
+          if (call.method == 'Clipboard.setData') {
+            final text = call.arguments['text'] as String;
+            written.add(text);
+            throw PlatformException(code: 'CLIPBOARD_ERROR');
+          }
+          return null;
+        },
+      );
+      await tester.pumpWidget(
+        _wrap(
+          Copyable(
+            value: 'secret',
+            clearAfter: const Duration(seconds: 30),
+            feedback: const NoneFeedback(),
+            onError: (_) {},
+            child: const Text('tap'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('tap'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 30));
+      // Only the failed write — no clear timer should fire
+      expect(written.where((s) => s == '').toList(), isEmpty);
+    });
+
+    testWidgets('uses theme clearAfter when widget clearAfter is null',
+        (tester) async {
+      final written = <String>[];
+      _mockPlatformChannelCapture(tester, written);
+      await tester.pumpWidget(
+        _wrap(
+          const CopyableTheme(
+            data: CopyableThemeData(
+              clearAfter: Duration(seconds: 10),
+            ),
+            child: Copyable(
+              value: 'data',
+              feedback: NoneFeedback(),
+              child: Text('tap'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('tap'));
+      await tester.pump();
+      expect(written, ['data']);
+
+      await tester.pump(const Duration(seconds: 10));
+      expect(written, ['data', '']);
+    });
+  });
+
+  group('CopyableBuilder clearAfter', () {
+    testWidgets('clears clipboard after specified duration', (tester) async {
+      final written = <String>[];
+      _mockPlatformChannelCapture(tester, written);
+      await tester.pumpWidget(
+        _wrap(
+          CopyableBuilder(
+            value: 'token',
+            clearAfter: const Duration(seconds: 30),
+            builder: (_, isCopied) => Text(isCopied ? 'copied' : 'idle'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('idle'));
+      await tester.pump();
+      expect(written, ['token']);
+
+      await tester.pump(const Duration(seconds: 30));
+      expect(written, ['token', '']);
     });
   });
 

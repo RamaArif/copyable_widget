@@ -42,5 +42,18 @@ void main() {
       expect(copy.snackBarDuration, const Duration(seconds: 3));
       expect(copy.clearAfter, const Duration(seconds: 10));
     });
+
+    test('copyWith(clearAfter: null) disables clearAfter', () {
+      const data = CopyableThemeData(clearAfter: Duration(seconds: 30));
+      final copy = data.copyWith(clearAfter: null);
+      expect(copy.clearAfter, isNull);
+    });
+
+    test('copyWith omitting clearAfter retains existing value', () {
+      const data = CopyableThemeData(clearAfter: Duration(seconds: 30));
+      final copy = data.copyWith(snackBarText: 'Updated');
+      expect(copy.clearAfter, const Duration(seconds: 30));
+      expect(copy.snackBarText, 'Updated');
+    });
   });
 }
