@@ -19,9 +19,12 @@ sealed class CopyableFeedback {
   ///
   /// Styled entirely by the app's own [ThemeData.snackBarTheme] — the package
   /// applies no custom style. Requires a [Scaffold] ancestor in the tree.
+  ///
+  /// When [text] or [duration] are null, their values are resolved from
+  /// the nearest [CopyableTheme] (or its defaults) in the widget tree.
   const factory CopyableFeedback.snackBar({
-    String text,
-    Duration duration,
+    String? text,
+    Duration? duration,
   }) = SnackBarFeedback;
 
   /// Calls [onCopied] with the [BuildContext] and the full [CopyableEvent].
@@ -39,15 +42,21 @@ sealed class CopyableFeedback {
 /// Built-in SnackBar feedback. Created via [CopyableFeedback.snackBar].
 final class SnackBarFeedback extends CopyableFeedback {
   const SnackBarFeedback({
-    this.text = 'Copied!',
-    this.duration = const Duration(seconds: 2),
+    this.text,
+    this.duration,
   });
 
   /// The message shown inside the SnackBar.
-  final String text;
+  ///
+  /// When null, resolves to [CopyableThemeData.snackBarText] from the nearest
+  /// [CopyableTheme], which defaults to `'Copied!'`.
+  final String? text;
 
   /// How long the SnackBar is displayed.
-  final Duration duration;
+  ///
+  /// When null, resolves to [CopyableThemeData.snackBarDuration] from the
+  /// nearest [CopyableTheme], which defaults to 2 seconds.
+  final Duration? duration;
 }
 
 /// Custom feedback callback. Created via [CopyableFeedback.custom].
