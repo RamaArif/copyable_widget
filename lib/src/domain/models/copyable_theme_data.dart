@@ -44,16 +44,24 @@ class CopyableThemeData {
   @override
   int get hashCode => Object.hash(snackBarText, snackBarDuration, clearAfter);
 
+  static const _unset = Object();
+
   /// Returns a copy of this theme with the given fields replaced.
+  ///
+  /// Pass `clearAfter: null` to explicitly disable the clear-after feature
+  /// (removes any inherited duration). Omitting [clearAfter] retains the
+  /// existing value.
   CopyableThemeData copyWith({
     String? snackBarText,
     Duration? snackBarDuration,
-    Duration? clearAfter,
+    Object? clearAfter = _unset,
   }) {
     return CopyableThemeData(
       snackBarText: snackBarText ?? this.snackBarText,
       snackBarDuration: snackBarDuration ?? this.snackBarDuration,
-      clearAfter: clearAfter ?? this.clearAfter,
+      clearAfter: identical(clearAfter, _unset)
+          ? this.clearAfter
+          : clearAfter as Duration?,
     );
   }
 }
