@@ -75,6 +75,7 @@ class CopyHandler {
     required CopyableFeedback feedback,
     required HapticFeedbackStyle haptic,
     void Function(Object)? onError,
+    void Function(CopyableEvent)? onCopied,
   }) async {
     try {
       await _clipboardService.copy(value);
@@ -95,6 +96,7 @@ class CopyHandler {
     );
 
     if (!context.mounted) return;
+    onCopied?.call(event);
     _executeFeedback(context, feedback, event);
   }
 

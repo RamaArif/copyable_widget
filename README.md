@@ -1,6 +1,8 @@
 # copyable_widget
 
 [![pub package](https://img.shields.io/pub/v/copyable_widget.svg)](https://pub.dev/packages/copyable_widget)
+[![CI](https://github.com/RamaArif/copyable_widget/actions/workflows/ci.yml/badge.svg)](https://github.com/RamaArif/copyable_widget/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/RamaArif/copyable_widget/branch/main/graph/badge.svg)](https://codecov.io/gh/RamaArif/copyable_widget)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![platforms](https://img.shields.io/badge/platforms-android%20%7C%20ios%20%7C%20web%20%7C%20macos%20%7C%20windows%20%7C%20linux-lightgrey)](https://pub.dev/packages/copyable_widget)
 
@@ -34,7 +36,7 @@ GestureDetector(
 
 ```yaml
 dependencies:
-  copyable_widget: ^1.2.0
+  copyable_widget: ^1.3.0
 ```
 
 ```dart
@@ -48,6 +50,9 @@ import 'package:copyable_widget/copyable_widget.dart';
 ```dart
 // Drop-in text shorthand — tap to copy, shows "Copied!" SnackBar
 Copyable.text("TXN-9182736")
+
+// 1-line copy button shorthand
+Copyable.icon("TXN-9182736")
 
 // Show a label but copy a different value
 Copyable.text(
@@ -88,6 +93,7 @@ Row(
 | `haptic` | `HapticFeedbackStyle` | `lightImpact` | Haptic style fired after copy |
 | `clearAfter` | `Duration?` | `null` | Clears clipboard after this duration (falls back to `CopyableTheme`) |
 | `onError` | `void Function(Object)?` | `null` | Called when `Clipboard.setData` throws |
+| `onCopied` | `void Function(CopyableEvent)?` | `null` | Called after a successful copy with the copied value, timestamp, and mode |
 
 ### `Copyable.text` factory
 
@@ -100,8 +106,24 @@ Row(
 | `haptic` | `HapticFeedbackStyle` | `lightImpact` | Haptic style fired after copy |
 | `clearAfter` | `Duration?` | `null` | Clears clipboard after this duration (falls back to `CopyableTheme`) |
 | `onError` | `void Function(Object)?` | `null` | Called when `Clipboard.setData` throws |
+| `onCopied` | `void Function(CopyableEvent)?` | `null` | Called after a successful copy with the copied value, timestamp, and mode |
 
 Also accepts all standard `Text` parameters (`style`, `textAlign`, `overflow`, `maxLines`, etc.).
+
+### `Copyable.icon` factory
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `value` | `String` | required | String written to the clipboard |
+| `icon` | `IconData` | `Icons.copy_rounded` | Icon displayed to the user |
+| `size` | `double?` | `null` | Forwarded to the underlying `Icon` |
+| `color` | `Color?` | `null` | Forwarded to the underlying `Icon` |
+| `mode` | `CopyableActionMode?` | `tap` | `tap`, `longPress`, or `doubleTap` |
+| `feedback` | `CopyableFeedback` | `snackBar()` | What happens after copy |
+| `haptic` | `HapticFeedbackStyle` | `lightImpact` | Haptic style fired after copy |
+| `clearAfter` | `Duration?` | `null` | Clears clipboard after this duration (falls back to `CopyableTheme`) |
+| `onError` | `void Function(Object)?` | `null` | Called when `Clipboard.setData` throws |
+| `onCopied` | `void Function(CopyableEvent)?` | `null` | Called after a successful copy with the copied value, timestamp, and mode |
 
 ### `CopyableFeedback` options
 
@@ -117,6 +139,7 @@ Also accepts all standard `Text` parameters (`style`, `textAlign`, `overflow`, `
 |---|---|
 | `tap` | Default on all platforms |
 | `longPress` | Pass explicitly when long-press behaviour is needed |
+| `doubleTap` | Use when single-tap and long-press are already reserved or double-tap is the preferred copy gesture |
 
 ### `CopyableEvent` (passed to `custom` callback)
 
@@ -124,7 +147,7 @@ Also accepts all standard `Text` parameters (`style`, `textAlign`, `overflow`, `
 |---|---|---|
 | `value` | `String` | The string copied to the clipboard |
 | `timestamp` | `DateTime` | When the copy occurred |
-| `mode` | `CopyableActionMode` | Whether triggered by tap or longPress |
+| `mode` | `CopyableActionMode` | Whether triggered by tap, longPress, or doubleTap |
 
 ---
 
@@ -134,7 +157,10 @@ Also accepts all standard `Text` parameters (`style`, `textAlign`, `overflow`, `
 // 1. Minimal — all defaults
 Copyable.text("TXN-9182736")
 
-// 2. Label + value — display one string, copy another
+// 2. Icon shorthand
+Copyable.icon("TXN-9182736", icon: Icons.content_copy, color: Colors.blue)
+
+// 3. Label + value — display one string, copy another
 Copyable.text(
   "Copy card number",
   value: cardNumber,
@@ -177,17 +203,24 @@ Copyable(
   child: WalletAddressTile(...),
 )
 
-// 7. Silent copy — manage your own state
+// 8. Silent copy — manage your own state
 Copyable(
   value: apiKey,
   feedback: CopyableFeedback.none(),
   child: ApiKeyCard(...),
 )
 
-// 8. Long-press mode (explicit)
+// 9. Long-press mode (explicit)
 Copyable.text(
   "Hold to copy",
   mode: CopyableActionMode.longPress,
+)
+
+// 10. Double-tap mode (analytics tracking)
+Copyable.text(
+  "Double tap",
+  mode: CopyableActionMode.doubleTap,
+  onCopied: (event) => analytics.track('copied', {'value': event.value}),
 )
 ```
 

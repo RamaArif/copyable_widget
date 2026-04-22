@@ -1,3 +1,13 @@
+## 1.3.0
+
+* **New:** Added `onCopied` callback to `Copyable`, `Copyable.text`, and `CopyableBuilder` for tracking copies without needing custom feedback UI
+* **New:** Added `Copyable.icon` convenience factory for quick 1-line copy buttons
+* **New:** Added `CopyableActionMode.doubleTap` support across `Copyable`, `Copyable.text`, and `CopyableBuilder` for scenarios where single/long-press gestures are already handled by the child widget
+* **CI:** Added GitHub Actions workflow for automated analysis + test + coverage on every PR
+* **Docs:** Completed 100% dartdoc coverage — all public symbols documented
+* **Docs:** Fixed 3 unresolved `[isCopied]` dartdoc reference warnings
+* **Meta:** Added `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`
+
 ## 1.2.0
 
 * **New:** `CopyableBuilder` widget — exposes `isCopied` boolean state via builder function for fully custom copy UI (GitHub-style icon toggle, animated containers, etc.)

@@ -1,7 +1,8 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import '../application/copy_handler.dart';
 import '../domain/models/copyable_action_mode.dart';
+import '../domain/models/copyable_event.dart';
 import '../domain/models/copyable_feedback.dart';
 import '../domain/models/haptic_feedback_style.dart';
 import '_clear_timer_mixin.dart';
@@ -89,6 +90,7 @@ class Copyable extends StatefulWidget {
     this.haptic = HapticFeedbackStyle.lightImpact,
     this.clearAfter,
     this.onError,
+    this.onCopied,
   });
 
   /// The string written to the clipboard when the gesture fires.
@@ -125,6 +127,12 @@ class Copyable extends StatefulWidget {
   /// Use this for error logging and recovery.
   final void Function(Object)? onError;
 
+  /// Called after a successful copy with full event context.
+  ///
+  /// Receives a [CopyableEvent] containing the value, timestamp, and mode.
+  /// This is called regardless of the UI feedback strategy used.
+  final void Function(CopyableEvent)? onCopied;
+
   static final _handler = CopyHandler();
 
   /// Shorthand for the common case of copying a text string.
@@ -158,6 +166,7 @@ class Copyable extends StatefulWidget {
     HapticFeedbackStyle haptic = HapticFeedbackStyle.lightImpact,
     Duration? clearAfter,
     void Function(Object)? onError,
+    void Function(CopyableEvent)? onCopied,
     TextStyle? style,
     StrutStyle? strutStyle,
     TextAlign? textAlign,
@@ -180,6 +189,7 @@ class Copyable extends StatefulWidget {
         haptic: haptic,
         clearAfter: clearAfter,
         onError: onError,
+        onCopied: onCopied,
         child: Text(
           data,
           style: style,
@@ -195,6 +205,39 @@ class Copyable extends StatefulWidget {
           textWidthBasis: textWidthBasis,
           textHeightBehavior: textHeightBehavior,
           selectionColor: selectionColor,
+        ),
+      );
+
+  /// Shorthand for copying from an icon.
+  ///
+  /// Shows an [Icon] widget that writes [value] to the clipboard when
+  /// interacted with. [icon] defaults to `Icons.copy_rounded`.
+  factory Copyable.icon(
+    String value, {
+    Key? key,
+    IconData icon = Icons.copy_rounded,
+    double? size,
+    Color? color,
+    CopyableActionMode? mode,
+    CopyableFeedback feedback = const SnackBarFeedback(),
+    HapticFeedbackStyle haptic = HapticFeedbackStyle.lightImpact,
+    Duration? clearAfter,
+    void Function(Object)? onError,
+    void Function(CopyableEvent)? onCopied,
+  }) =>
+      Copyable(
+        key: key,
+        value: value,
+        mode: mode,
+        feedback: feedback,
+        haptic: haptic,
+        clearAfter: clearAfter,
+        onError: onError,
+        onCopied: onCopied,
+        child: Icon(
+          icon,
+          size: size,
+          color: color,
         ),
       );
 
@@ -228,6 +271,7 @@ class _CopyableState extends State<Copyable>
           copySucceeded = false;
           widget.onError?.call(e);
         },
+        onCopied: widget.onCopied,
       );
 
       if (!copySucceeded) return;
@@ -246,6 +290,9 @@ class _CopyableState extends State<Copyable>
           ? () => _handleCopy(context)
           : null,
       onLongPress: resolvedMode == CopyableActionMode.longPress
+          ? () => _handleCopy(context)
+          : null,
+      onDoubleTap: resolvedMode == CopyableActionMode.doubleTap
           ? () => _handleCopy(context)
           : null,
       child: widget.child,

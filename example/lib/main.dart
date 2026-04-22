@@ -278,10 +278,11 @@ class _IbanRowIconOnly extends StatelessWidget {
           ],
         ),
         const Spacer(),
-        Copyable(
-          value: iban,
+        Copyable.icon(
+          iban,
+          color: cs.outline,
+          size: 18,
           feedback: const CopyableFeedback.snackBar(text: 'IBAN copied!'),
-          child: Icon(Icons.copy_rounded, color: cs.outline, size: 18),
         ),
       ],
     );

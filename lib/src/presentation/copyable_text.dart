@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../application/copy_handler.dart';
 import '../domain/models/copyable_action_mode.dart';
+import '../domain/models/copyable_event.dart';
 import '../domain/models/copyable_feedback.dart';
 import '../domain/models/haptic_feedback_style.dart';
 import '_clear_timer_mixin.dart';
@@ -38,6 +39,7 @@ class CopyableText extends StatefulWidget {
     this.haptic = HapticFeedbackStyle.lightImpact,
     this.clearAfter,
     this.onError,
+    this.onCopied,
     this.style,
     this.strutStyle,
     this.textAlign,
@@ -82,20 +84,50 @@ class CopyableText extends StatefulWidget {
   /// When provided, no haptic or feedback is triggered on failure.
   final void Function(Object)? onError;
 
+  /// Called after a successful copy with full event context.
+  ///
+  /// Receives a [CopyableEvent] containing the value, timestamp, and mode.
+  final void Function(CopyableEvent)? onCopied;
+
   // ── Text widget parameters ────────────────────────────────────────────────
 
+  /// Forwarded to the underlying [Text] widget's [Text.style].
   final TextStyle? style;
+
+  /// Forwarded to the underlying [Text] widget's [Text.strutStyle].
   final StrutStyle? strutStyle;
+
+  /// Forwarded to the underlying [Text] widget's [Text.textAlign].
   final TextAlign? textAlign;
+
+  /// Forwarded to the underlying [Text] widget's [Text.textDirection].
   final TextDirection? textDirection;
+
+  /// Forwarded to the underlying [Text] widget's [Text.locale].
   final Locale? locale;
+
+  /// Forwarded to the underlying [Text] widget's [Text.softWrap].
   final bool? softWrap;
+
+  /// Forwarded to the underlying [Text] widget's [Text.overflow].
   final TextOverflow? overflow;
+
+  /// Forwarded to the underlying [Text] widget's [Text.textScaler].
   final TextScaler? textScaler;
+
+  /// Forwarded to the underlying [Text] widget's [Text.maxLines].
   final int? maxLines;
+
+  /// Forwarded to the underlying [Text] widget's [Text.semanticsLabel].
   final String? semanticsLabel;
+
+  /// Forwarded to the underlying [Text] widget's [Text.textWidthBasis].
   final TextWidthBasis? textWidthBasis;
+
+  /// Forwarded to the underlying [Text] widget's [Text.textHeightBehavior].
   final TextHeightBehavior? textHeightBehavior;
+
+  /// Forwarded to the underlying [Text] widget's [Text.selectionColor].
   final Color? selectionColor;
 
   static final _handler = CopyHandler();
@@ -128,6 +160,7 @@ class _CopyableTextState extends State<CopyableText>
           copySucceeded = false;
           widget.onError?.call(e);
         },
+        onCopied: widget.onCopied,
       );
 
       if (!copySucceeded) return;
@@ -146,6 +179,9 @@ class _CopyableTextState extends State<CopyableText>
           ? () => _handleCopy(context)
           : null,
       onLongPress: resolvedMode == CopyableActionMode.longPress
+          ? () => _handleCopy(context)
+          : null,
+      onDoubleTap: resolvedMode == CopyableActionMode.doubleTap
           ? () => _handleCopy(context)
           : null,
       child: Text(

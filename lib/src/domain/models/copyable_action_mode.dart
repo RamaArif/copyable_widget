@@ -13,4 +13,10 @@ enum CopyableActionMode {
   /// navigates). Note: if the child has its own `onLongPress`, they will
   /// compete in the gesture arena.
   longPress,
+
+  /// Copy on double-tap.
+  ///
+  /// Useful when a child already handles both single tap and long-press
+  /// gestures, or when a quick double-tap feels more natural for copying.
+  doubleTap,
 }

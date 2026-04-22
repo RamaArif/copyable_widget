@@ -28,7 +28,7 @@ import 'copyable_theme.dart';
 /// )
 /// ```
 ///
-/// The [isCopied] flag is automatically reset to `false` after [resetAfter]
+/// The `isCopied` flag is automatically reset to `false` after [resetAfter]
 /// (default 2 seconds). The clipboard can be automatically cleared after
 /// [clearAfter] (or the nearest [CopyableTheme] value).
 class CopyableBuilder extends StatefulWidget {
@@ -47,9 +47,9 @@ class CopyableBuilder extends StatefulWidget {
   /// The string written to the clipboard when the gesture fires.
   final String value;
 
-  /// Builder that receives the current [isCopied] state.
+  /// Builder that receives the current `isCopied` state.
   ///
-  /// Called on every rebuild. Use [isCopied] to toggle icons, colors, or text.
+  /// Called on every rebuild. Use `isCopied` to toggle icons, colors, or text.
   final Widget Function(BuildContext context, bool isCopied) builder;
 
   /// The gesture that triggers the copy.
@@ -63,7 +63,7 @@ class CopyableBuilder extends StatefulWidget {
   /// without haptic hardware.
   final HapticFeedbackStyle haptic;
 
-  /// How long [isCopied] stays `true` before automatically resetting to
+  /// How long `isCopied` stays `true` before automatically resetting to
   /// `false`. Defaults to 2 seconds.
   final Duration resetAfter;
 
@@ -152,6 +152,8 @@ class _CopyableBuilderState extends State<CopyableBuilder>
       onTap: resolvedMode == CopyableActionMode.tap ? _handleCopy : null,
       onLongPress:
           resolvedMode == CopyableActionMode.longPress ? _handleCopy : null,
+      onDoubleTap:
+          resolvedMode == CopyableActionMode.doubleTap ? _handleCopy : null,
       child: widget.builder(context, _isCopied),
     );
   }
