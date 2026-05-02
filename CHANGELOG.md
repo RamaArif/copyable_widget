@@ -1,3 +1,12 @@
+## 1.4.0
+
+* **New:** Accessibility support — all widgets now wrap with `Semantics(button: true)` and announce copy success to screen readers via `SemanticsService.sendAnnouncement`
+* **New:** `semanticLabel` parameter on `Copyable`, `CopyableText`, and `CopyableBuilder` — customizes the screen reader label (auto-generates `'Copy $value'` when omitted)
+* **New:** `excludeSemantics` parameter on all widgets — prevents duplicate labels when the child already provides its own semantics
+* **New:** `trailingHint` parameter on `Copyable.text` and `CopyableText` — renders a small copy icon after the text that switches to a check mark on copy, making the copy affordance explicit
+* **New:** Default `SystemMouseCursors.click` cursor on all widgets — desktop/web users now see a pointer cursor on hover, signaling interactivity
+* **Note:** `Copyable.text` is now a `static` method returning `CopyableText` instead of a `factory` returning `Copyable`. This is source-compatible for all standard usage (`Copyable.text('...')` in widget trees) but may require a change if you explicitly type the result as `Copyable`.
+
 ## 1.3.0
 
 * **New:** Added `onCopied` callback to `Copyable`, `Copyable.text`, and `CopyableBuilder` for tracking copies without needing custom feedback UI

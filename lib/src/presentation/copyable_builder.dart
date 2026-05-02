@@ -8,6 +8,7 @@ import '../domain/models/copyable_action_mode.dart';
 import '../domain/models/copyable_event.dart';
 import '../domain/models/haptic_feedback_style.dart';
 import '_clear_timer_mixin.dart';
+import '_copyable_semantics.dart';
 import 'copyable_theme.dart';
 
 /// A fully custom copy widget that exposes an `isCopied` boolean state.
@@ -42,6 +43,8 @@ class CopyableBuilder extends StatefulWidget {
     this.clearAfter,
     this.onError,
     this.onCopied,
+    this.semanticLabel,
+    this.excludeSemantics = false,
   });
 
   /// The string written to the clipboard when the gesture fires.
@@ -81,6 +84,14 @@ class CopyableBuilder extends StatefulWidget {
   /// Receives a [CopyableEvent] containing the value, timestamp, and mode.
   final void Function(CopyableEvent)? onCopied;
 
+  /// The label read by screen readers for this copyable element.
+  ///
+  /// When null, auto-generates from [value].
+  final String? semanticLabel;
+
+  /// Whether to exclude the child's semantics from the tree.
+  final bool excludeSemantics;
+
   @override
   State<CopyableBuilder> createState() => _CopyableBuilderState();
 }
@@ -94,7 +105,7 @@ class _CopyableBuilderState extends State<CopyableBuilder>
   @override
   void dispose() {
     _resetTimer?.cancel();
-    super.dispose(); // ClearAfterMixin.dispose cancels the clear timer
+    super.dispose();
   }
 
   Future<void> _handleCopy() async {
@@ -108,7 +119,6 @@ class _CopyableBuilderState extends State<CopyableBuilder>
       return;
     }
 
-    // Fire haptic feedback.
     switch (widget.haptic) {
       case HapticFeedbackStyle.lightImpact:
         await HapticFeedback.lightImpact();
@@ -136,6 +146,8 @@ class _CopyableBuilderState extends State<CopyableBuilder>
       mode: resolvedMode,
     ));
 
+    announceCopied(context);
+
     _resetTimer?.cancel();
     _resetTimer = Timer(widget.resetAfter, () {
       if (mounted) setState(() => _isCopied = false);
@@ -147,14 +159,24 @@ class _CopyableBuilderState extends State<CopyableBuilder>
   @override
   Widget build(BuildContext context) {
     final resolvedMode = widget.mode ?? CopyableActionMode.tap;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: resolvedMode == CopyableActionMode.tap ? _handleCopy : null,
-      onLongPress:
-          resolvedMode == CopyableActionMode.longPress ? _handleCopy : null,
-      onDoubleTap:
-          resolvedMode == CopyableActionMode.doubleTap ? _handleCopy : null,
-      child: widget.builder(context, _isCopied),
+    final label = widget.semanticLabel ?? copyableAutoLabel(widget.value);
+
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: widget.excludeSemantics,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: resolvedMode == CopyableActionMode.tap ? _handleCopy : null,
+          onLongPress:
+              resolvedMode == CopyableActionMode.longPress ? _handleCopy : null,
+          onDoubleTap:
+              resolvedMode == CopyableActionMode.doubleTap ? _handleCopy : null,
+          child: widget.builder(context, _isCopied),
+        ),
+      ),
     );
   }
 }

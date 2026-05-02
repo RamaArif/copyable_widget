@@ -6,6 +6,8 @@ import '../domain/models/copyable_event.dart';
 import '../domain/models/copyable_feedback.dart';
 import '../domain/models/haptic_feedback_style.dart';
 import '_clear_timer_mixin.dart';
+import '_copyable_semantics.dart';
+import 'copyable_text.dart';
 import 'copyable_theme.dart';
 
 /// Wraps any widget with clipboard copy behaviour on tap or long-press.
@@ -91,6 +93,8 @@ class Copyable extends StatefulWidget {
     this.clearAfter,
     this.onError,
     this.onCopied,
+    this.semanticLabel,
+    this.excludeSemantics = false,
   });
 
   /// The string written to the clipboard when the gesture fires.
@@ -133,31 +137,36 @@ class Copyable extends StatefulWidget {
   /// This is called regardless of the UI feedback strategy used.
   final void Function(CopyableEvent)? onCopied;
 
+  /// The label read by screen readers for this copyable element.
+  ///
+  /// When null, auto-generates from [value] (e.g. `'Copy TXN-918...'`).
+  final String? semanticLabel;
+
+  /// Whether to exclude the child's semantics from the tree.
+  ///
+  /// Set to `true` when the child already provides its own semantic label
+  /// and doubling up would confuse screen readers.
+  final bool excludeSemantics;
+
   static final _handler = CopyHandler();
 
   /// Shorthand for the common case of copying a text string.
   ///
-  /// Equivalent to wrapping a [Text] widget with [Copyable]. All standard
-  /// [Text] parameters are forwarded verbatim.
+  /// Returns a [CopyableText] widget. All standard [Text] parameters are
+  /// forwarded verbatim.
   ///
   /// The optional [value] parameter lets you decouple the displayed label from
   /// what is written to the clipboard. When omitted, [data] is copied instead.
   ///
+  /// Set [trailingHint] to `true` to show a small copy icon after the text,
+  /// making the copy affordance explicit:
   /// ```dart
   /// Copyable.text(
-  ///   "TXN-9182736",
-  ///   style: TextStyle(fontFamily: 'monospace'),
-  ///   feedback: CopyableFeedback.snackBar(text: 'Transaction ID copied'),
-  /// )
-  ///
-  /// // Show a label but copy the actual card number
-  /// Copyable.text(
-  ///   "Copy card number",
-  ///   value: cardNumber,
-  ///   feedback: CopyableFeedback.snackBar(text: 'Card number copied'),
+  ///   'TXN-9182736',
+  ///   trailingHint: true,
   /// )
   /// ```
-  factory Copyable.text(
+  static CopyableText text(
     String data, {
     Key? key,
     String? value,
@@ -167,6 +176,9 @@ class Copyable extends StatefulWidget {
     Duration? clearAfter,
     void Function(Object)? onError,
     void Function(CopyableEvent)? onCopied,
+    String? semanticLabel,
+    bool excludeSemantics = false,
+    bool trailingHint = false,
     TextStyle? style,
     StrutStyle? strutStyle,
     TextAlign? textAlign,
@@ -181,31 +193,32 @@ class Copyable extends StatefulWidget {
     TextHeightBehavior? textHeightBehavior,
     Color? selectionColor,
   }) =>
-      Copyable(
+      CopyableText(
+        data,
         key: key,
-        value: value ?? data,
+        value: value,
         mode: mode,
         feedback: feedback,
         haptic: haptic,
         clearAfter: clearAfter,
         onError: onError,
         onCopied: onCopied,
-        child: Text(
-          data,
-          style: style,
-          strutStyle: strutStyle,
-          textAlign: textAlign,
-          textDirection: textDirection,
-          locale: locale,
-          softWrap: softWrap,
-          overflow: overflow,
-          textScaler: textScaler,
-          maxLines: maxLines,
-          semanticsLabel: semanticsLabel,
-          textWidthBasis: textWidthBasis,
-          textHeightBehavior: textHeightBehavior,
-          selectionColor: selectionColor,
-        ),
+        semanticLabel: semanticLabel,
+        excludeSemantics: excludeSemantics,
+        trailingHint: trailingHint,
+        style: style,
+        strutStyle: strutStyle,
+        textAlign: textAlign,
+        textDirection: textDirection,
+        locale: locale,
+        softWrap: softWrap,
+        overflow: overflow,
+        textScaler: textScaler,
+        maxLines: maxLines,
+        semanticsLabel: semanticsLabel,
+        textWidthBasis: textWidthBasis,
+        textHeightBehavior: textHeightBehavior,
+        selectionColor: selectionColor,
       );
 
   /// Shorthand for copying from an icon.
@@ -224,6 +237,7 @@ class Copyable extends StatefulWidget {
     Duration? clearAfter,
     void Function(Object)? onError,
     void Function(CopyableEvent)? onCopied,
+    String? semanticLabel,
   }) =>
       Copyable(
         key: key,
@@ -234,6 +248,7 @@ class Copyable extends StatefulWidget {
         clearAfter: clearAfter,
         onError: onError,
         onCopied: onCopied,
+        semanticLabel: semanticLabel,
         child: Icon(
           icon,
           size: size,
@@ -258,8 +273,6 @@ class _CopyableState extends State<Copyable>
       final resolvedFeedback =
           Copyable._handler.resolveFeedback(widget.feedback, theme);
 
-      // Track whether the copy succeeded so the clear timer is not started
-      // when handle() returns early due to a clipboard error.
       var copySucceeded = true;
       await Copyable._handler.handle(
         context: context,
@@ -275,6 +288,11 @@ class _CopyableState extends State<Copyable>
       );
 
       if (!copySucceeded) return;
+
+      if (context.mounted) {
+        announceCopied(context);
+      }
+
       startClearAfterTimer(widget.clearAfter ?? theme.clearAfter);
     } finally {
       _isCopying = false;
@@ -284,18 +302,29 @@ class _CopyableState extends State<Copyable>
   @override
   Widget build(BuildContext context) {
     final resolvedMode = Copyable._handler.resolveMode(widget.mode);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: resolvedMode == CopyableActionMode.tap
-          ? () => _handleCopy(context)
-          : null,
-      onLongPress: resolvedMode == CopyableActionMode.longPress
-          ? () => _handleCopy(context)
-          : null,
-      onDoubleTap: resolvedMode == CopyableActionMode.doubleTap
-          ? () => _handleCopy(context)
-          : null,
-      child: widget.child,
+    final label =
+        widget.semanticLabel ?? copyableAutoLabel(widget.value);
+
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: widget.excludeSemantics,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: resolvedMode == CopyableActionMode.tap
+              ? () => _handleCopy(context)
+              : null,
+          onLongPress: resolvedMode == CopyableActionMode.longPress
+              ? () => _handleCopy(context)
+              : null,
+          onDoubleTap: resolvedMode == CopyableActionMode.doubleTap
+              ? () => _handleCopy(context)
+              : null,
+          child: widget.child,
+        ),
+      ),
     );
   }
 }

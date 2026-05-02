@@ -88,6 +88,78 @@ class ExamplePage extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
+          // ── 1b. trailingHint — visible copy affordance ──────────────────
+          const _SectionLabel('Copyable.text — trailingHint'),
+          const SizedBox(height: 8),
+          _DemoCard(
+            description:
+                'trailingHint: true shows a small copy icon after the text. '
+                'The icon switches to a check mark after a successful copy.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Copyable.text(
+                  'TXN-9182736',
+                  trailingHint: true,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                  ),
+                  feedback: const CopyableFeedback.snackBar(
+                    text: 'Transaction ID copied!',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Copyable.text(
+                  'Copy card number',
+                  value: _cardNumber,
+                  trailingHint: true,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: cs.primary,
+                  ),
+                  feedback: const CopyableFeedback.snackBar(
+                    text: 'Card number copied!',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ── 1c. semanticLabel — accessibility ───────────────────────────
+          const _SectionLabel('Accessibility — semanticLabel'),
+          const SizedBox(height: 8),
+          _DemoCard(
+            description:
+                'Screen readers announce "Copy card number, button" instead '
+                'of reading the raw value. After copy, "Copied" is announced.',
+            child: Copyable(
+              value: _cardNumber,
+              semanticLabel: 'Copy card number',
+              feedback: const CopyableFeedback.snackBar(
+                text: 'Card number copied!',
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.credit_card_rounded, color: cs.primary, size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    _cardNumber,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
           // ── 2. Whole row copyable ────────────────────────────────────────
           const _SectionLabel('Copyable — whole row'),
           const SizedBox(height: 8),

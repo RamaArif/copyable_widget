@@ -45,8 +45,8 @@ void main() {
       );
 
       await tester.tap(find.text('tap me'));
-      await tester.pump(); // async chain (clipboard → haptic → showSnackBar)
-      await tester.pump(); // SnackBar frame rendered
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('Tap works'), findsOneWidget);
     });
@@ -65,8 +65,8 @@ void main() {
       );
 
       await tester.longPress(find.text('hold me'));
-      await tester.pump(); // async chain (clipboard → haptic → showSnackBar)
-      await tester.pump(); // SnackBar frame rendered
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('LongPress works'), findsOneWidget);
     });
@@ -87,6 +87,38 @@ void main() {
       await tester.pump();
 
       expect(find.text('Should not appear'), findsNothing);
+    });
+
+    testWidgets('doubleTap mode triggers on double tap', (tester) async {
+      _mockPlatformChannel(tester);
+      String? clipboardValue;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall call) async {
+          if (call.method == 'Clipboard.setData') {
+            clipboardValue = (call.arguments as Map)['text'] as String?;
+          }
+          return null;
+        },
+      );
+
+      await tester.pumpWidget(
+        _wrap(
+          const Copyable(
+            value: 'double-value',
+            mode: CopyableActionMode.doubleTap,
+            feedback: CopyableFeedback.none(),
+            child: Text('double tap me'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('double tap me'));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.text('double tap me'));
+      await tester.pumpAndSettle();
+
+      expect(clipboardValue, 'double-value');
     });
 
     testWidgets('none feedback shows no SnackBar', (tester) async {
@@ -125,7 +157,7 @@ void main() {
       );
 
       await tester.tap(find.text('custom'));
-      await tester.pump(); // async chain (clipboard → haptic → callback)
+      await tester.pump();
 
       expect(capturedValue, 'wallet-addr');
     });
@@ -159,8 +191,8 @@ void main() {
       );
 
       await tester.tap(find.text('TXN-002'));
-      await tester.pump(); // async chain (clipboard → haptic → showSnackBar)
-      await tester.pump(); // SnackBar frame rendered
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('Text copied'), findsOneWidget);
     });
@@ -206,7 +238,6 @@ void main() {
         ),
       );
 
-      // The displayed label is 'data', not 'value'
       expect(find.text('Copy card number'), findsOneWidget);
       expect(find.text('4111-1111-1111-1111'), findsNothing);
     });
@@ -227,6 +258,93 @@ void main() {
 
       final textWidget = tester.widget<Text>(find.text('styled'));
       expect(textWidget.style?.fontSize, 24);
+    });
+  });
+
+  group('Copyable semantics', () {
+    testWidgets('wraps child with Semantics button role', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          const Copyable(
+            value: 'test',
+            feedback: CopyableFeedback.none(),
+            child: Text('tap me'),
+          ),
+        ),
+      );
+
+      final semantics = tester.getSemantics(find.byType(Copyable));
+      expect(semantics.flagsCollection.isButton, isTrue);
+    });
+
+    testWidgets('auto-generates semantic label from value', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          const Copyable(
+            value: 'TXN-123',
+            feedback: CopyableFeedback.none(),
+            child: Text('tap'),
+          ),
+        ),
+      );
+
+      final semantics = tester.getSemantics(find.byType(Copyable));
+      expect(semantics.label, contains('Copy TXN-123'));
+    });
+
+    testWidgets('uses custom semanticLabel when provided', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          const Copyable(
+            value: '4111-1111-1111-1111',
+            semanticLabel: 'Copy card number',
+            feedback: CopyableFeedback.none(),
+            child: Text('tap'),
+          ),
+        ),
+      );
+
+      final semantics = tester.getSemantics(find.byType(Copyable));
+      expect(semantics.label, contains('Copy card number'));
+    });
+
+    testWidgets('truncates auto-generated label for long values', (tester) async {
+      final longValue = 'A' * 100;
+      await tester.pumpWidget(
+        _wrap(
+          Copyable(
+            value: longValue,
+            feedback: const CopyableFeedback.none(),
+            child: const Text('tap'),
+          ),
+        ),
+      );
+
+      final semantics = tester.getSemantics(find.byType(Copyable));
+      expect(semantics.label, startsWith('Copy '));
+      expect(semantics.label.length, lessThan(60));
+    });
+  });
+
+  group('Copyable cursor', () {
+    testWidgets('renders MouseRegion with click cursor', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          const Copyable(
+            value: 'test',
+            feedback: CopyableFeedback.none(),
+            child: Text('hover me'),
+          ),
+        ),
+      );
+
+      final mouseRegion = tester.widget<MouseRegion>(
+        find.descendant(
+          of: find.byType(Copyable),
+          matching: find.byType(MouseRegion),
+        ),
+      );
+      expect(mouseRegion.cursor, SystemMouseCursors.click);
     });
   });
 
@@ -257,6 +375,108 @@ void main() {
 
       expect(event.toString(), contains('abc'));
       expect(event.toString(), contains('longPress'));
+    });
+  });
+
+  group('Copyable.icon factory', () {
+    testWidgets('renders icon and copies value on tap', (tester) async {
+      String? clipboardValue;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall call) async {
+          if (call.method == 'Clipboard.setData') {
+            clipboardValue = (call.arguments as Map)['text'] as String?;
+          }
+          return null;
+        },
+      );
+
+      await tester.pumpWidget(
+        _wrap(
+          Copyable.icon(
+            'secret-value',
+            feedback: const CopyableFeedback.none(),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.copy_rounded));
+      await tester.pumpAndSettle();
+      expect(clipboardValue, 'secret-value');
+    });
+
+    testWidgets('forwards semanticLabel', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          Copyable.icon(
+            'addr',
+            semanticLabel: 'Copy wallet address',
+            feedback: const CopyableFeedback.none(),
+          ),
+        ),
+      );
+
+      final semantics = tester.getSemantics(find.byType(Copyable));
+      expect(semantics.label, contains('Copy wallet address'));
+    });
+  });
+
+  group('Copyable excludeSemantics', () {
+    testWidgets('excludes child semantics when true', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          const Copyable(
+            value: 'test',
+            excludeSemantics: true,
+            semanticLabel: 'Copy test',
+            feedback: CopyableFeedback.none(),
+            child: Text('child text'),
+          ),
+        ),
+      );
+
+      final semantics = tester.getSemantics(find.byType(Copyable));
+      expect(semantics.flagsCollection.isButton, isTrue);
+      expect(semantics.label, isNot(contains('child text')));
+    });
+
+    testWidgets('includes child semantics when false (default)', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          const Copyable(
+            value: 'test',
+            semanticLabel: 'Copy test',
+            feedback: CopyableFeedback.none(),
+            child: Text('child text'),
+          ),
+        ),
+      );
+
+      final semantics = tester.getSemantics(find.byType(Copyable));
+      expect(semantics.label, contains('child text'));
+    });
+  });
+
+  group('Copyable widget disposal', () {
+    testWidgets('disposing mid-clearAfter timer does not throw', (tester) async {
+      _mockPlatformChannel(tester);
+      await tester.pumpWidget(
+        _wrap(
+          const Copyable(
+            value: 'x',
+            clearAfter: Duration(seconds: 30),
+            feedback: CopyableFeedback.none(),
+            child: Text('tap'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('tap'));
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(_wrap(const SizedBox()));
+      await tester.pump(const Duration(seconds: 30));
     });
   });
 }
